@@ -38,7 +38,7 @@ const GameBoardScreen = () => {
     <Container>
       <GameInfo>
         <h2>Game ID: {gameId}</h2>
-        <button onClick={() => navigate.push('/lobby')}>Back to Lobby</button>
+        <button onClick={() => navigate('/lobby')}>Back to Lobby</button>
       </GameInfo>
       <GameBoard />
     </Container>

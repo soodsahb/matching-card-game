@@ -9,6 +9,8 @@ import GameBoardScreen from './screens/GameBoardScreen';
 import socketClient from './socket/socketClient';
 import { Navigate } from 'react-router-dom';
 import { loadUser } from './actions/authActions';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -52,6 +54,7 @@ const App = () => {
 
   return (
     <Router>
+       <ToastContainer position="top-center" autoClose={2000} />
       <Routes>
   <Route 
     path="/login" 

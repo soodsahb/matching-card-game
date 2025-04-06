@@ -5,6 +5,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import Card from './Card';
 import socketClient from '../socket/socketClient';
 import { useNavigate,useParams} from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 const GameContainer = styled.div`
   display: flex;
@@ -65,6 +67,38 @@ const GameBoard = () => {
   const lastPileWinnerRef = useRef(null);
   const [lastPileWinner, setLastPileWinner] = useState(null);
   const prevPileLength = useRef(0);
+  const prevStatus = useRef(null);
+
+
+  useEffect(() => {
+    // Only run when status changes to 'completed'
+    if (status === 'completed' && prevStatus.current !== 'completed' && game) {
+      // Show the appropriate toast message
+      if (game.winner === null) {
+        toast.info("Game ended in a tie!", { 
+          icon: "🤝"
+        });
+      } else if (game.winner === user._id) {
+        toast.success("Congratulations! You won the game!", {
+          icon: "🏆"
+        });
+      } else {
+        toast.info("You lost this round. Better luck next time!", {
+          icon: "👍"
+        });
+      }
+      
+      // Redirect to lobby after 3 seconds
+      const redirectTimer = setTimeout(() => {
+        navigate('/lobby');
+      }, 3000);
+      
+      // Clear the timer if component unmounts
+      return () => clearTimeout(redirectTimer);
+    }
+    
+    prevStatus.current = status;
+  }, [status, game, user._id, navigate]);
 
   // Track who won the last pile
   useEffect(() => {
@@ -156,15 +190,21 @@ const GameBoard = () => {
         <h3>Your Score: {player?.score || 0}</h3>
         <h3>Opponent Score: {opponent?.score || 0}</h3>
         {status === 'active' && (
-          <h3>Turn: {game.currentTurn === playerIndex ? 'Your Turn' : 'Opponent\'s Turn'}</h3>
-        )}
+  <h3>
+    Turn: {game.currentTurn === playerIndex ? 'Your Turn' : 'Opponent\'s Turn'}
+    {game.finalTurn && <span style={{color: '#e74c3c'}}> (Final Turn!)</span>}
+  </h3>
+)}
         {status === 'completed' && (
   <h2>
     {game.winner === null 
       ? 'Game Tied!' 
       : game.winner === user._id 
         ? 'You Win!' 
-        : 'Opponent Wins!'}
+        : 'Opponent Wins!'
+        
+        
+        }
   </h2>
 )}
       </GameInfo>

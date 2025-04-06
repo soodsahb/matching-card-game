@@ -29,6 +29,16 @@ const Card = ({ card, onClick, index, inPile = false }) => {
     // Show card faces only for cards in the current pile
     if (!card) return '/assets/cards/back.png';
     
+    // Handle jokers first - special case
+    if (card.suit === 'joker') {
+      // Determine joker color based on value
+      if (card.value === 14) return '/assets/cards/black_joker.png';
+      if (card.value === 15) return '/assets/cards/red_joker.png';
+      // Fallback for any other joker value
+      return '/assets/cards/red_joker.png';
+    }
+    
+    // Regular cards
     const value = card.value;
     const suit = card.suit;
     
@@ -44,11 +54,6 @@ const Card = ({ card, onClick, index, inPile = false }) => {
       valueName = 'king';
     } else {
       valueName = value; // For cards 2-10
-    }
-
-    // Handle jokers
-    if (card.suit === 'joker') {
-      return `/assets/cards/${card.value}_joker.png`;
     }
     
     return `/assets/cards/${valueName}_of_${suit}.png`;

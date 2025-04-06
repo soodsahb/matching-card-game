@@ -113,52 +113,76 @@ class GameService {
       value: card.value,
       owner: userId
     });
+
+    let justWonPile = false;
     
     // Check if card matches previous card
     if (game.currentPile.length > 1) {
       const topCard = game.currentPile[game.currentPile.length - 1];
       const previousCard = game.currentPile[game.currentPile.length - 2];
       
-      if (topCard.value === previousCard.value) {
-        // Player wins the pile
-        const winningPlayer = game.players[playerIndex];
-        winningPlayer.score += game.currentPile.length;
-        
-        // Add pile to played cards and clear current pile
-        game.playedCards.push(...game.currentPile);
-        game.currentPile = [];
-      }
+      if (topCard.value === previousCard.value || 
+        (topCard.suit === 'joker' && previousCard.suit === 'joker')) {
+      // Player wins the pile
+      const winningPlayer = game.players[playerIndex];
+      winningPlayer.score += game.currentPile.length;
+      
+      // Add pile to played cards and clear current pile
+      game.playedCards.push(...game.currentPile);
+      game.currentPile = [];
+      justWonPile = true;
     }
+    }
+
+    let gameEnding = false;
     
-    // Switch turns
-    game.currentTurn = (game.currentTurn + 1) % 2;
+  
+  // Case 1: This was already marked as a final turn
+  if (game.finalTurn) {
+    gameEnding = true;
+  }
+  // Case 2: Both players are now out of cards
+  else if (game.players[0].cards.length === 0 && game.players[1].cards.length === 0) {
+    gameEnding = true;
+  }   // Case 3: This player is out of cards AND just won the pile (nothing left to win)
+  else if (game.players[playerIndex].cards.length === 0 && justWonPile) {
+    gameEnding = true;
+  }
+  // Case 4: Only this player is out of cards - set final turn
+  else if (game.players[playerIndex].cards.length === 0) {
+    game.finalTurn = true;
+  }
+    
+    // Switch turns (unless the other player also has no cards)
+  const otherPlayerIndex = (playerIndex + 1) % 2;
+  if (!gameEnding && game.players[otherPlayerIndex].cards.length > 0) {
+    game.currentTurn = otherPlayerIndex;
+  }
     
     // Check if game is over
-    if (game.players[0].cards.length === 0 || game.players[1].cards.length === 0) {
-      game.status = 'completed';
-      
-      // Determine winner
-      if (game.players[0].score > game.players[1].score) {
-        game.winner = game.players[0].userId;
-      } else if (game.players[1].score > game.players[0].score) {
-        game.winner = game.players[1].userId;
-      } else {
-        // In case of a tie, the player who ran out of cards wins
-        // It's a tie - set winner to null
-  game.winner = null;
-      }
-      
-      // Update player stats
-      for (const player of game.players) {
-        await User.findByIdAndUpdate(player.userId, {
-          $inc: {
-            'stats.gamesPlayed': 1,
-            'stats.gamesWon': player.userId.toString() === game.winner?.toString() ? 1 : 0,
-          }
-        });
-      }
+  if (gameEnding) {
+    game.status = 'completed';
     
+    // Determine winner based on score
+    if (game.players[0].score > game.players[1].score) {
+      game.winner = game.players[0].userId;
+    } else if (game.players[1].score > game.players[0].score) {
+      game.winner = game.players[1].userId;
+    } else {
+      // It's a tie
+      game.winner = null;
     }
+    
+    // Update player stats
+    for (const player of game.players) {
+      await User.findByIdAndUpdate(player.userId, {
+        $inc: {
+          'stats.gamesPlayed': 1,
+          'stats.gamesWon': player.userId.toString() === game.winner?.toString() ? 1 : 0,
+        }
+      });
+    }
+  }
     
     await game.save();
     return game;

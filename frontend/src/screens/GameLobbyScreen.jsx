@@ -80,6 +80,17 @@ const GameLobbyScreen = () => {
   return (
     <Container>
       <h1>Card Game Lobby</h1>
+
+      <Card>
+  <h2>Game Rules</h2>
+  <p>
+    • Players take turns playing cards<br/>
+    • Cards are face-down - you won't see what you play!<br/>
+    • When your card matches the previous card's value, you win the pile!<br/>
+    • Jokers are special: A joker on joker wins the game<br/>
+    • The player with the highest score when all cards are played wins
+  </p>
+</Card>
       
       <Card>
         <h2>Create New Game</h2>
